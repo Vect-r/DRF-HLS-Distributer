@@ -15,6 +15,13 @@ class Tag(BaseModel):
 
     def __str__(self):
         return self.name
+
+class Performer(BaseModel):
+    name = models.CharField(max_length=255,null=False,blank=False,unique=True)
+
+    def __str__(self):
+        return self.name
+    
     
 class Network(BaseModel):
     name = models.CharField(max_length=255,null=False,blank=False,unique=True)
@@ -27,6 +34,8 @@ class Video(BaseModel):
     url = models.URLField(null=False,blank=False)
     tags = models.ManyToManyField(Tag, related_name='videos',blank=True)
     network = models.ForeignKey(Network,related_name="videos",on_delete=models.CASCADE)
+    performers = models.ManyToManyField(Performer,related_name='videos',blank=True)
+
 
     def __str__(self):
         return f"{self.title} -> {self.network}"

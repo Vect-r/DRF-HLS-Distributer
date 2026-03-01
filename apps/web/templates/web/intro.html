@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for dropdowns */
+        .dropdown-scroll::-webkit-scrollbar { width: 6px; }
+        .dropdown-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dropdown-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-600 body-font">
+
+    <div class="container px-5 py-10 mx-auto">
+        
+        <div class="flex flex-col text-center w-full mb-10">
+            <h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Video Library</h1>
+        </div>
+
+        <form method="GET" action="." class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="flex flex-col">
+                    <label class="leading-7 text-sm text-gray-600 mb-1">Search Videos</label>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search title or URL..." 
+                           class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-2 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                </div>
+
+                <div class="flex flex-col relative" data-dropdown>
+                    <label class="leading-7 text-sm text-gray-600 mb-1">Filter by Network</label>
+                    <button type="button" class="w-full bg-gray-100 border border-gray-300 rounded py-2.5 px-3 text-left flex justify-between items-center text-gray-700" data-dropdown-toggle>
+                        Select Networks
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20 hidden" data-dropdown-menu>
+                        <div class="p-2">
+                            <input type="text" placeholder="Search networks..." class="w-full border-b border-gray-200 pb-1 mb-2 outline-none text-sm text-gray-700" data-dropdown-search>
+                            <div class="max-h-48 overflow-y-auto dropdown-scroll flex flex-col space-y-2">
+                                {% for network in all_networks %}
+                                <label class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded" data-dropdown-item>
+                                    <input type="checkbox" name="networks" value="{{ network.id }}" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    {% if network.id|stringformat:"s" in selected_networks %}checked{% endif %}>
+                                    <span class="search-text">{{ network.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col relative" data-dropdown>
+                    <label class="leading-7 text-sm text-gray-600 mb-1">Filter by Tags</label>
+                    <button type="button" class="w-full bg-gray-100 border border-gray-300 rounded py-2.5 px-3 text-left flex justify-between items-center text-gray-700" data-dropdown-toggle>
+                        Select Tags
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20 hidden" data-dropdown-menu>
+                        <div class="p-2">
+                            <input type="text" placeholder="Search tags..." class="w-full border-b border-gray-200 pb-1 mb-2 outline-none text-sm text-gray-700" data-dropdown-search>
+                            <div class="max-h-48 overflow-y-auto dropdown-scroll flex flex-col space-y-2">
+                                {% for tag in all_tags %}
+                                <label class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded" data-dropdown-item>
+                                    <input type="checkbox" name="tags" value="{{ tag.id }}" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    {% if tag.id|stringformat:"s" in selected_tags %}checked{% endif %}>
+                                    <span class="search-text">{{ tag.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <a href="." class="text-gray-500 hover:text-gray-800 px-4 py-2 mr-2">Clear Filters</a>
+                <button type="submit" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Apply Filters</button>
+            </div>
+        </form>
+
+        <div class="flex flex-wrap -m-4">
+            {% for video in page_obj %}
+            <div class="p-4 md:w-1/3 w-full">
+                <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <div class="p-6">
+                        <span class="inline-block bg-indigo-100 text-indigo-500 rounded-full px-3 py-1 text-xs font-semibold tracking-widest uppercase mb-4">{{ video.network.name }}</span>
+                        
+                        <h1 class="title-font text-xl font-medium text-gray-900 mb-3 truncate" title="{{ video.title }}">{{ video.title }}</h1>
+                        
+                        <div class="flex flex-wrap gap-1 mb-4">
+                            {% for tag in video.tags.all %}
+                                <span class="text-xs text-gray-500 border border-gray-200 px-2 py-0.5 rounded">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="flex items-center flex-wrap mt-auto">
+                            <a href="{{ video.url }}" target="_blank" class="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0 hover:text-indigo-600 truncate">
+                                Watch Video
+                                <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14"></path>
+                                    <path d="M12 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="w-full p-10 text-center text-gray-500">
+                <p>No videos found matching your criteria.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="flex justify-center mt-12">
+            <nav class="inline-flex rounded-md shadow-sm isolate">
+                
+                {% if page_obj.has_previous %}
+                    <a href="?{{ query_string }}&page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">Previous</a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-300 bg-white border border-gray-300 rounded-l-md cursor-not-allowed">Previous</span>
+                {% endif %}
+
+                {% for num in page_range %}
+                    {% if num == page_obj.paginator.ELLIPSIS %}
+                        <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300">...</span>
+                    {% elif num == page_obj.number %}
+                        <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-500 z-10">{{ num }}</span>
+                    {% else %}
+                        <a href="?{{ query_string }}&page={{ num }}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?{{ query_string }}&page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">Next</a>
+                {% else %}
+                    <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-300 bg-white border border-gray-300 rounded-r-md cursor-not-allowed">Next</span>
+                {% endif %}
+
+            </nav>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdowns = document.querySelectorAll('[data-dropdown]');
+
+            dropdowns.forEach(dropdown => {
+                const toggleBtn = dropdown.querySelector('[data-dropdown-toggle]');
+                const menu = dropdown.querySelector('[data-dropdown-menu]');
+                const searchInput = dropdown.querySelector('[data-dropdown-search]');
+                const items = dropdown.querySelectorAll('[data-dropdown-item]');
+
+                // Toggle menu visibility
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Close others
+                    document.querySelectorAll('[data-dropdown-menu]').forEach(m => {
+                        if(m !== menu) m.classList.add('hidden');
+                    });
+                    menu.classList.toggle('hidden');
+                    if(!menu.classList.contains('hidden')) {
+                        searchInput.focus();
+                    }
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!dropdown.contains(e.target)) {
+                        menu.classList.add('hidden');
+                    }
+                });
+
+                // Search filtering logic
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    items.forEach(item => {
+                        const text = item.querySelector('.search-text').textContent.toLowerCase();
+                        if (text.includes(term)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

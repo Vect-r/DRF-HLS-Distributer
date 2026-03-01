@@ -1,17 +1,22 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 
+from rest_framework import viewsets, filters
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import *
 from apps.master.models import *
 
 # Create your views here.
-class VideoAPI(ListAPIView):
-    queryset = Video.objects.all().order_by('created_at')
+class VideoViewSet(viewsets.ModelViewSet):
     serializer_class = VideoSerializer
-    # pagination_class = BlogPagination
+    queryset = Video.objects.all().order_by('created_at')
+    # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    # filterset_fields = ['network', 'tags']
+    # search_fields = ['title', 'url']
 
 @api_view(['GET'])
 def m3u8_response(request,category_type:str,name:str):
