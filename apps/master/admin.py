@@ -20,7 +20,7 @@ class PerformerAdmin(admin.ModelAdmin):
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     # form = VideoAdminForm
-    list_display = ('title','url','network')
+    list_display = ('id','title','url','network')
     list_filter = (('tags', MultiSelectRelatedFieldListFilter),'network','performers',)
     search_fields = ('title','url')
     ordering = ('url','title')

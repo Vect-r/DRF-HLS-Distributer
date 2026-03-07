@@ -4,12 +4,12 @@ from apps.master.models import Video, Tag, Network, Performer
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['id', 'name']
+        fields = ['name']
 
 class NetworkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Network
-        fields = ['id', 'name']
+        fields = ['name']
 
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,8 +19,17 @@ class ActorSerializer(serializers.ModelSerializer):
 class VideoSerializer(serializers.ModelSerializer):
     # --- READ FIELDS (Outgoing Data) ---
     network = NetworkSerializer(read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
-    performers = ActorSerializer(many=True,read_only=True)
+    tags = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+    performers = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+    
 
     # --- WRITE FIELDS (Incoming Data) ---
     network_name = serializers.CharField(write_only=True)

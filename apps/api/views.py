@@ -8,15 +8,17 @@ from rest_framework.decorators import api_view
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import *
+from .filters import *
 from apps.master.models import *
 
 # Create your views here.
 class VideoViewSet(viewsets.ModelViewSet):
     serializer_class = VideoSerializer
     queryset = Video.objects.all().order_by('created_at')
-    # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    # filterset_fields = ['network', 'tags']
-    # search_fields = ['title', 'url']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = VideoFilter
+    # filterset_fields = ['network', 'tags__name']
+    search_fields = ['title', 'url']
 
 @api_view(['GET'])
 def m3u8_response(request,category_type:str,name:str):
