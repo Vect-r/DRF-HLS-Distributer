@@ -36,6 +36,5 @@ class Video(BaseModel):
     network = models.ForeignKey(Network,related_name="videos",on_delete=models.CASCADE)
     performers = models.ManyToManyField(Performer,related_name='videos',blank=True)
 
-
     def __str__(self):
         return f"{self.title} -> {self.network}"
