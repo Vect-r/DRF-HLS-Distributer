@@ -1,9 +1,9 @@
 from .models import *
-from .utils.parser import generate_m3u8
+from apps.master.utils.parser import generate_m3u8
 
 from django.contrib import admin
 from django.http import HttpResponse
-from django.db.models import Count
+from django.db.models import Count, QuerySet
 
 from django_admin_multi_select_filter.filters import MultiSelectRelatedFieldListFilter
 
@@ -28,6 +28,7 @@ class VideoAdmin(admin.ModelAdmin):
     ordering = ('url','title')
     actions = ['export_as_HLS']
     filter_horizontal = ('tags','performers')
+    FILTER_MODEL_MAP = {"tags__id__in": Tag,"network__id__exact": Network,"performers__id__exact": Performer,}
 
     def tags_count(self, obj):
         return obj.tags_count
@@ -41,7 +42,44 @@ class VideoAdmin(admin.ModelAdmin):
         return queryset
 
     def export_as_HLS(self, request, queryset):
-        print(request.GET.dict())
+        gets = {k:v.split(',') for k,v in  request.GET.dict().items()}
+        # params = ["tags__id__in", "network__id__exact", "performers__id__exact"]
+
+        db_objects = []
+
+        for param in self.FILTER_MODEL_MAP.keys():
+            ids = gets.get(param)
+            if not ids:
+                continue
+
+            model = self.FILTER_MODEL_MAP[param]
+            objs = model.objects.filter(id__in=ids)
+
+            db_objects.extend(objs)
+
+        if db_objects:
+            # print(db_objects)
+            # print('-'.join(i.name for i in db_objects))
+            filename = ('-'.join(i.name for i in db_objects))
+        else:
+            filename = "all"
+        print(filename)
+
+        m3u8File = generate_m3u8(queryset,filename)
+        response = HttpResponse(m3u8File, content_type='application/x-mpegURL')
+
+        # 3. Set the 'Content-Disposition' header to trigger a download
+        # 'attachment; filename="filename.txt"' suggests the browser save it as 'filename.txt'
+        response['Content-Disposition'] = f'attachment; filename="{filename}.m3u8"'
+
+        # 4. Return the response
+        return response
+
+
+
+        
+
+
 
     tags_count.admin_order_field = 'tags_count' 
     tags_count.short_description = 'Tags Count'
