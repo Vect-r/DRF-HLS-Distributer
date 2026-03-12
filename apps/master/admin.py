@@ -7,6 +7,12 @@ from django.db.models import Count, QuerySet
 
 from django_admin_multi_select_filter.filters import MultiSelectRelatedFieldListFilter
 
+
+class QualityInline(admin.TabularInline):
+    model = Quality
+    extra = 1  # How many empty rows to show by default
+    fields = ['quality', 'codec', 'url'] # Optional: specify the order of fields
+
 # Register your models here.
 @admin.register(Network)
 class NetworkAdmin(admin.ModelAdmin):
@@ -20,6 +26,12 @@ class PerformerAdmin(admin.ModelAdmin):
     list_filter = ["name"]
     search_fields = ["name"]
 
+@admin.register(Platform)
+class PlatformAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+    list_filter = ["name"]
+    search_fields = ["name"]
+
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     list_display = ('title','created_at','url','network','tags_count','performers_count')
@@ -27,6 +39,7 @@ class VideoAdmin(admin.ModelAdmin):
     search_fields = ('title','url')
     ordering = ('url','title')
     actions = ['export_as_HLS']
+    inlines = [QualityInline]
     filter_horizontal = ('tags','performers')
     FILTER_MODEL_MAP = {"tags__id__in": Tag,"network__id__exact": Network,"performers__id__exact": Performer,}
 
