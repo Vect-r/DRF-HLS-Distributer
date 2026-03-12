@@ -2,10 +2,10 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 
 from rest_framework import viewsets, filters, mixins
-from rest_framework.generics import ListAPIView
-from rest_framework.decorators import api_view
 
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .serializers import *
 from .filters import *
@@ -21,6 +21,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     # filterset_fields = ['network', 'tags__name']
     search_fields = ['title', 'url']
     filter_list = ['tag','network','performer']
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def list(self, request, *args, **kwargs):
         # 1. Catch the custom 'download' query parameter
@@ -53,3 +54,7 @@ class VideoViewSet(viewsets.ModelViewSet):
 class QualityViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Quality.objects.all()
     serializer_class = QualitySerializer    
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

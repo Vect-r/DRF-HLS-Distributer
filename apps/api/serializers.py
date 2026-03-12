@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
 from apps.master.models import Video, Tag, Network, Platform, Performer, Quality
 
 class QualitySerializer(serializers.ModelSerializer):
@@ -123,3 +126,18 @@ class VideoSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        
+        last_login_epoch = int(user.last_login.timestamp()) if user.last_login else None
+        
+        token['username'] = user.username
+        token['is_superuser'] = user.is_superuser
+        token['last_login'] = last_login_epoch
+        return token
+
+# Connect the custom serializer to a new View

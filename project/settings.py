@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +27,7 @@ SECRET_KEY = 'django-insecure-t5e559^z4rsr#^enmm))fi%+62s#$+2#z4eu&nt5&7yof1&qhl
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
@@ -49,8 +51,27 @@ INSTALLED_APPS += [
 #Third-Party Apps 
 INSTALLED_APPS += [
     'rest_framework',
-    'django_filters'
+    'django_filters',
+    'corsheaders',
 ]
+
+REST_FRAMEWORK = {
+    # 1. Set JWT as the default authentication method
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # 2. Keep standard pagination and filtering if you had them
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=2), # Set access token expiry
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=4),    # Set refresh token expiry
+    'ROTATE_REFRESH_TOKENS': True,                  # Optional: New refresh token on refresh
+    'BLACKLIST_AFTER_ROTATION': True,               # Optional: Blacklist used refresh token
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,6 +81,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'project.urls'
