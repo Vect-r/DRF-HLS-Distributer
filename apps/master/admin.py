@@ -56,7 +56,6 @@ class VideoAdmin(admin.ModelAdmin):
 
     def export_as_HLS(self, request, queryset):
         gets = {k:v.split(',') for k,v in  request.GET.dict().items()}
-        # params = ["tags__id__in", "network__id__exact", "performers__id__exact"]
 
         db_objects = []
 
@@ -87,12 +86,6 @@ class VideoAdmin(admin.ModelAdmin):
 
         # 4. Return the response
         return response
-
-
-
-        
-
-
 
     tags_count.admin_order_field = 'tags_count' 
     tags_count.short_description = 'Tags Count'

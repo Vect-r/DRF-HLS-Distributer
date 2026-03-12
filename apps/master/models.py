@@ -44,15 +44,14 @@ class Video(BaseModel):
     network = models.ForeignKey(Network,related_name="videos",on_delete=models.CASCADE)
     platform = models.ForeignKey(Platform,related_name='videos',on_delete=models.CASCADE)
     performers = models.ManyToManyField(Performer,related_name='videos',blank=True)
-    
 
     def __str__(self):
         return f"{self.title} -> {self.network}"
     
 class Quality(BaseModel):
     class CODECS(models.TextChoices):
-        AV1 = "AV1", "AV1"
-        H264 = "H264", "H264"
+        AV1 = "av1", "AV1"
+        H264 = "h264", "H264"
 
     QUALITY_CHOICES = [
         ('240p', '240p (SD)'),
