@@ -8,9 +8,11 @@ from django.db.models import Count, QuerySet
 from django_admin_multi_select_filter.filters import MultiSelectRelatedFieldListFilter
 
 
-class QualityInline(admin.TabularInline):
+class QualitiesInline(admin.TabularInline):
     model = Quality
     extra = 1  # How many empty rows to show by default
+    verbose_name = "Quality" # Changes the singular name (e.g., "Add another Item")
+    verbose_name_plural = "Video Qualities"
     fields = ['quality', 'codec', 'url'] # Optional: specify the order of fields
 
 # Register your models here.
@@ -39,7 +41,7 @@ class VideoAdmin(admin.ModelAdmin):
     search_fields = ('title','url')
     ordering = ('url','title')
     actions = ['export_as_HLS']
-    inlines = [QualityInline]
+    inlines = [QualitiesInline]
     filter_horizontal = ('tags','performers')
     FILTER_MODEL_MAP = {"tags__id__in": Tag,"network__id__exact": Network,"performers__id__exact": Performer,}
 
