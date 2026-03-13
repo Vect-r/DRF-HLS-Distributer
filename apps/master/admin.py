@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.db.models import Count, QuerySet
 
 from django_admin_multi_select_filter.filters import MultiSelectRelatedFieldListFilter
+from django.utils.html import format_html
 
 
 class QualitiesInline(admin.TabularInline):
@@ -13,7 +14,22 @@ class QualitiesInline(admin.TabularInline):
     extra = 1  # How many empty rows to show by default
     verbose_name = "Quality" # Changes the singular name (e.g., "Add another Item")
     verbose_name_plural = "Video Qualities"
-    fields = ['quality', 'codec', 'url'] # Optional: specify the order of fields
+    fields = ['quality', 'codec', 'url', 'copy_url_button'] # Optional: specify the order of fields
+
+    readonly_fields = ("copy_url_button",)
+
+    def copy_url_button(self, obj):
+        if not obj.pk:
+            return ""
+        return format_html(
+            '<button type="button" class="selector-chooseall" onclick="copyToClipboard(\'{}\')">Copy</button>',
+            obj.url
+        )
+
+    copy_url_button.short_description = "Copy URL"
+
+    class Media:
+        js = ("admin/js/copy_clipboard.js",)
 
 # Register your models here.
 @admin.register(Network)
