@@ -39,7 +39,7 @@ class Network(BaseModel):
 
 class Video(BaseModel):
     title = models.CharField(max_length=255,null=False,blank=False)
-    url = models.URLField(null=False,blank=False)
+    url = models.URLField(null=False,blank=False,unique=True)
     tags = models.ManyToManyField(Tag, related_name='videos',blank=True)
     network = models.ForeignKey(Network,related_name="videos",on_delete=models.CASCADE)
     platform = models.ForeignKey(Platform,related_name='videos',on_delete=models.CASCADE)
@@ -59,7 +59,8 @@ class Quality(BaseModel):
         ('480p', '480p (SD)'),
         ('720p', '720p (HD)'),
         ('1080p', '1080p (Full HD)'),
-        ('4k', '4K (UHD)'),
+        ('1440p', '1440p (Quad HD)'),
+        ('2160p', '4K (UHD)'),
     ]
 
     # Your fields
