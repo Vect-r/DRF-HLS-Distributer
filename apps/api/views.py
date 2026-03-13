@@ -7,12 +7,26 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+
 from .serializers import *
 from .filters import *
 from apps.master.models import *
 from apps.master.utils.parser import generate_m3u8
 
 # Create your views here.
+
+@api_view(['GET'])
+def get_items(request):
+    data={}
+    data['tags'] = Tag.objects.all().values_list('name',flat=True)
+    data['performers'] = Performer.objects.all().values_list('name',flat=True)
+    data['platforms'] = Platform.objects.all().values_list('name',flat=True)
+    data['networks'] = Network.objects.all().values_list('name',flat=True)
+    return Response(data)
+
 class VideoViewSet(viewsets.ModelViewSet):
     serializer_class = VideoSerializer
     queryset = Video.objects.all().order_by('created_at')
