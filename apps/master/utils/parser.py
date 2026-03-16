@@ -7,3 +7,16 @@ def generate_m3u8(queryset,playlist_name) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+def switcher(elem,lists:list):
+    #gets element index from list
+    elemIndex = lists.index(elem)
+    try:
+        #check if elem is last or middle (Not first).
+        if elem == lists[-1] or elem != lists[0]:
+            return lists[elemIndex-1]
+        #if First,
+        else:
+            return lists[elemIndex+1]
+    except IndexError:
+        return elem

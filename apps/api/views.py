@@ -10,7 +10,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-
 from .serializers import *
 from .filters import *
 from apps.master.models import *
@@ -40,6 +39,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         # 1. Catch the custom 'download' query parameter
         is_download = request.query_params.get('download', '').lower() == 'true'
+        # preferred_quality = request.query_params.get()
 
         if is_download:
             queryset = self.filter_queryset(self.get_queryset())
