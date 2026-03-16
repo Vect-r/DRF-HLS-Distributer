@@ -67,6 +67,8 @@ class VideoAdmin(admin.ModelAdmin):
     inlines = [QualitiesInline]
     filter_horizontal = ('tags','performers')
     FILTER_MODEL_MAP = {"tags__id__in": Tag,"network__id__exact": Network,"performers__id__exact": Performer,}
+    qualities = list(value for value,label in Quality.QUALITY_CHOICES)
+    codecs = list(value for value,label in Quality.CODECS.choices)
 
     list_per_page = 20
 
@@ -124,7 +126,44 @@ class VideoAdmin(admin.ModelAdmin):
         choices.reverse()
         return choices
     
+    #recursion
+    def get_quality_object(self,quality,queryset):
+        matching = queryset.filter(quality=quality)
+        if not matching:
+            quality = switcher(quality,self.qualities)
+            return self.get_quality_object(quality,queryset)
+        return matching[0]
+    
+    def get_codec_qs(self,codec,video):
+        matching = video.qualities.filter(codec=codec)
+        if not matching:
+            codec = switcher(codec,self.codecs)
+            return self.get_codec_qs(codec,video)
+        return matching
+        
+    
     def export_as_hls(self, request, queryset):
+        gets = {k:v.split(',') for k,v in  request.GET.dict().items()}
+
+        db_objects = []
+
+        for param in self.FILTER_MODEL_MAP.keys():
+            ids = gets.get(param)
+            if not ids:
+                continue
+
+            model = self.FILTER_MODEL_MAP[param]
+            objs = model.objects.filter(id__in=ids)
+
+            db_objects.extend(objs)
+
+        if db_objects:
+            # print(db_objects)
+            # print('-'.join(i.name for i in db_objects))
+            filename = ('-'.join(i.name for i in db_objects))
+        else:
+            filename = "all"
+        print(filename)
 
         quality = request.POST.get("pref_quality")
         codec = request.POST.get("pref_codec")
@@ -135,13 +174,54 @@ class VideoAdmin(admin.ModelAdmin):
 
         print(quality,codec)
 
-        p={}
+        quality_objs = []
         qualities = list(value for value,label in Quality.QUALITY_CHOICES)
         codecs = list(value for value,label in Quality.CODECS.choices)
         
+        for video in queryset:
+            # found_codec = codec
+            # found_quality = quality
+            # match_quality_qs = None
 
+
+            #Codec Check
+            # while True:
+            #     check_codec = video.qualities.filter(codec=found_codec)
+            #     #if Preferred Codec found in Filtered QuerySet
+            #     if check_codec:
+            #         match_quality_qs = check_codec
+            #         break
+            #     #Else Switch the Codec
+            #     else:
+            #         found_codec = switcher(found_codec,codecs)
+            #         continue
+
+            #Quality Check
+            # while True:
+            #     check_quality = match_quality_qs.filter(quality=found_quality)
+            #     if check_quality:
+            #         match_quality_qs = check_quality
+            #         break
+            #     else:
+            #         found_quality = switcher(found_quality,qualities)
+            #         continue
+
+
+            
+            # quality_objs.append(match_quality_qs[0])
+            quality_objs.append(self.get_quality_object(quality,self.get_codec_qs(codec,video)))
+            # p.append({'title':video.title,'watch':{'codec':quality_obj.codec,
+            #                                        'qualiity':quality_obj.quality},
+            #                                        'url':quality_obj.url
+            #                                        }
+            #                                        )
         
+        print(quality_objs)
         self.message_user(request, f"HLS export started ({quality}, {codec})")
+        m3u8File = generate_m3u8(quality_objs,filename)
+        response = HttpResponse(m3u8File, content_type='application/x-mpegURL')
+        response['Content-Disposition'] = f'attachment; filename="{filename}.m3u8"'
+        return response
 
     export_as_hls.short_description = "Export selected videos as HLS"
 
