@@ -128,6 +128,13 @@ class VideoAdmin(admin.ModelAdmin):
         
     
     def export_as_hls(self, request, queryset):
+        quality = request.POST.get("pref_quality")
+        codec = request.POST.get("pref_codec")
+        
+        if not quality or not codec:
+            self.message_user(request, "Please select quality and codec")
+            return
+        
         gets = {k:v.split(',') for k,v in  request.GET.dict().items()}
 
         db_objects = []
@@ -150,61 +157,17 @@ class VideoAdmin(admin.ModelAdmin):
             filename = "all"
         print(filename)
 
-        quality = request.POST.get("pref_quality")
-        codec = request.POST.get("pref_codec")
 
-        if not quality or not codec:
-            self.message_user(request, "Please select quality and codec")
-            return
 
         print(quality,codec)
 
-        quality_objs = []
-        # qualities = list(value for value,label in Quality.QUALITY_CHOICES)
-        # codecs = list(value for value,label in Quality.CODECS.choices)
+        # quality_objs = []
         
-        for video in queryset:
-            # found_codec = codec
-            # found_quality = quality
-            # match_quality_qs = None
-
-
-            #Codec Check
-            # while True:
-            #     check_codec = video.qualities.filter(codec=found_codec)
-            #     #if Preferred Codec found in Filtered QuerySet
-            #     if check_codec:
-            #         match_quality_qs = check_codec
-            #         break
-            #     #Else Switch the Codec
-            #     else:
-            #         found_codec = switcher(found_codec,codecs)
-            #         continue
-
-            #Quality Check
-            # while True:
-            #     check_quality = match_quality_qs.filter(quality=found_quality)
-            #     if check_quality:
-            #         match_quality_qs = check_quality
-            #         break
-            #     else:
-            #         found_quality = switcher(found_quality,qualities)
-            #         continue
-
-
+        # for video in queryset:
+        #     quality_objs.append(self.get_codec_filtered(codec,self.get_quality_filtered(quality,video)))
             
-            # quality_objs.append(match_quality_qs[0])
-            # quality_objs.append(self.get_quality_object(quality,self.get_codec_qs(codec,video)))
-            quality_objs.append(self.get_codec_filtered(codec,self.get_quality_filtered(quality,video)))
-            # p.append({'title':video.title,'watch':{'codec':quality_obj.codec,
-            #                                        'qualiity':quality_obj.quality},
-            #                                        'url':quality_obj.url
-            #                                        }
-            #                                        )
-        
-        # print(quality_objs)
         self.message_user(request, f"HLS export started ({quality}, {codec})")
-        m3u8File = generate_m3u8(quality_objs,filename)
+        m3u8File = generate_m3u8(queryset,filename,codec,quality)
         response = HttpResponse(m3u8File, content_type='application/x-mpegURL')
         response['Content-Disposition'] = f'attachment; filename="{filename}.m3u8"'
         return response

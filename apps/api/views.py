@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 
-from rest_framework import viewsets, filters, mixins
+from rest_framework import viewsets, filters, mixins, status
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from .serializers import *
 from .filters import *
 from apps.master.models import *
-from apps.master.utils.parser import generate_m3u8
+from apps.master.utils.parser import generate_m3u8, qualities, codecs
 
 # Create your views here.
 
@@ -39,9 +39,26 @@ class VideoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         # 1. Catch the custom 'download' query parameter
         is_download = request.query_params.get('download', '').lower() == 'true'
+        quality = request.query_params.get('quality', '').lower()
+        codec = request.query_params.get('codec', '').lower()
+        
         # preferred_quality = request.query_params.get()
+        print(quality)
 
         if is_download:
+            if not quality:
+                return Response({"error":f"quality is required"},status=status.HTTP_400_BAD_REQUEST)
+
+            if quality not in qualities:
+                return Response({"error":f"{quality} is not valid quality."},status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            
+            if not codec:
+                return Response({"error":f"codec is required"},status=status.HTTP_400_BAD_REQUEST)
+
+            if codec not in codecs:
+                return Response({"error":f"{codec} is not valid codec."},status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            
+
             queryset = self.filter_queryset(self.get_queryset())
 
             active_filters = []
@@ -58,7 +75,7 @@ class VideoViewSet(viewsets.ModelViewSet):
             else:
                 filename = "all_videos"
             
-            hls_file = generate_m3u8(queryset,filename)
+            hls_file = generate_m3u8(queryset,filename,codec,quality)
             response = HttpResponse(hls_file,content_type='application/x-mpegURL')
             response['Content-Disposition'] = f'attachment; filename="{filename}.m3u8"'
             return response

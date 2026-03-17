@@ -1,27 +1,35 @@
-from apps.master.models import 
+from apps.master.models import Quality
 
-def generate_m3u8(queryset,playlist_name) -> str:
+qualities = list(value for value,label in Quality.QUALITY_CHOICES)
+codecs = list(value for value,label in Quality.CODECS.choices)
+
+print(qualities,codecs)
+
+def generate_m3u8(queryset,playlist_name,codec,quality) -> str:
     lines = ["#EXTM3U", f"#PLAYLIST:{playlist_name}", ""]
 
-    for quality in queryset:
-        lines.append(f"#EXTINF:-1, {quality.video.title} | {quality.quality} | {quality.codec}")
-        lines.append(quality.url)
+
+    quality_objs = [get_codec_filtered(codec,get_quality_filtered(quality,video)) for video in queryset]
+
+    for v_quality in quality_objs:
+        lines.append(f"#EXTINF:-1, {v_quality.video.title} | {v_quality.quality} | {v_quality.codec}")
+        lines.append(v_quality.url)
         lines.append("")
 
     return "\n".join(lines)
 
-def get_quality_filtered(self,quality,video):
+def get_quality_filtered(quality,video):
         match = video.qualities.filter(quality=quality)
         if not match:
-            quality = switcher(quality,self.qualities)
-            return self.get_quality_filtered(quality,video)
+            quality = switcher(quality,qualities)
+            return get_quality_filtered(quality,video)
         return match
 
-def get_codec_filtered(self,codec,queryset):
+def get_codec_filtered(codec,queryset):
     match = queryset.filter(codec=codec)
     if not match:
-        codec = switcher(codec,self.codecs)
-        return self.get_codec_filtered(codec,queryset)
+        codec = switcher(codec,codecs)
+        return get_codec_filtered(codec,queryset)
     return match[0]
 
 def switcher(elem,lists:list):
