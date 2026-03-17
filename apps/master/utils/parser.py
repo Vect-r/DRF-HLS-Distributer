@@ -1,3 +1,5 @@
+from apps.master.models import 
+
 def generate_m3u8(queryset,playlist_name) -> str:
     lines = ["#EXTM3U", f"#PLAYLIST:{playlist_name}", ""]
 
@@ -7,6 +9,20 @@ def generate_m3u8(queryset,playlist_name) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+def get_quality_filtered(self,quality,video):
+        match = video.qualities.filter(quality=quality)
+        if not match:
+            quality = switcher(quality,self.qualities)
+            return self.get_quality_filtered(quality,video)
+        return match
+
+def get_codec_filtered(self,codec,queryset):
+    match = queryset.filter(codec=codec)
+    if not match:
+        codec = switcher(codec,self.codecs)
+        return self.get_codec_filtered(codec,queryset)
+    return match[0]
 
 def switcher(elem,lists:list):
     #gets element index from list
