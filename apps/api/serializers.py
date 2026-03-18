@@ -34,7 +34,7 @@ class VideoSerializer(serializers.ModelSerializer):
         model = Video
         # Notice we only list the fields that match your exact JSON keys
         fields = [
-            'id','title', 'url', 'network_name', 'performer_names', 
+            'id','title', 'url', 'created_at','network_name', 'performer_names', 
             'platform', 'tag_names', 'watch'
         ]
 
@@ -50,6 +50,7 @@ class VideoSerializer(serializers.ModelSerializer):
             "id": rep['id'],
             "title": rep['title'],
             "url": rep['url'],
+            "created_at": rep['created_at'],
             "network_name": instance.network.name if instance.network else None,
             "performer_names": [perf.name for perf in instance.performers.all()],
             "platform": rep['platform'],

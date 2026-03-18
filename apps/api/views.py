@@ -28,13 +28,15 @@ def get_items(request):
 
 class VideoViewSet(viewsets.ModelViewSet):
     serializer_class = VideoSerializer
-    queryset = Video.objects.all().order_by('created_at')
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    queryset = Video.objects.all()
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter,filters.OrderingFilter ]
     filterset_class = VideoFilter
     # filterset_fields = ['network', 'tags__name']
-    search_fields = ['title', 'url']
+    search_fields = ['title', 'url','network__name']
     filter_list = ['tag','network','performer']
     permission_classes = [IsAuthenticatedOrReadOnly]
+    ordering_fields = ['title','created_at']
+    ordering = ['-created_at']
 
     def list(self, request, *args, **kwargs):
         # 1. Catch the custom 'download' query parameter
