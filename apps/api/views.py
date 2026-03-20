@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from .serializers import *
 from .filters import *
+from .pagination import CustomLimitOffsetPagination
 from apps.master.models import *
 from apps.master.utils.parser import generate_m3u8, qualities, codecs
 
@@ -19,7 +20,10 @@ from apps.master.utils.parser import generate_m3u8, qualities, codecs
 
 @api_view(['GET'])
 def get_items(request):
-    data={}
+    data={
+        'qualities':qualities,
+        'codecs':codecs,
+    }
     data['tags'] = Tag.objects.all().values_list('name',flat=True)
     data['performers'] = Performer.objects.all().values_list('name',flat=True)
     data['platforms'] = Platform.objects.all().values_list('name',flat=True)
@@ -35,8 +39,9 @@ class VideoViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'url','network__name']
     filter_list = ['tag','network','performer']
     permission_classes = [IsAuthenticatedOrReadOnly]
-    ordering_fields = ['title','created_at']
+    ordering_fields = ['title','network__name','created_at',]
     ordering = ['-created_at']
+    pagination_class = CustomLimitOffsetPagination
 
     def list(self, request, *args, **kwargs):
         # 1. Catch the custom 'download' query parameter
