@@ -4,10 +4,11 @@ from django.http import HttpResponse, Http404
 from rest_framework import viewsets, filters, mixins, status
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from rest_framework.decorators import api_view
+# from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from .serializers import *
@@ -18,17 +19,28 @@ from apps.master.utils.parser import generate_m3u8, qualities, codecs
 
 # Create your views here.
 
-@api_view(['GET'])
-def get_items(request):
-    data={
-        'qualities':qualities,
-        'codecs':codecs,
-    }
-    data['tags'] = Tag.objects.all().values_list('name',flat=True)
-    data['performers'] = Performer.objects.all().values_list('name',flat=True)
-    data['platforms'] = Platform.objects.all().values_list('name',flat=True)
-    data['networks'] = Network.objects.all().values_list('name',flat=True)
-    return Response(data)
+# @api_view(['GET'])
+# def get_items(request):
+    
+
+class GetItems(APIView):
+    """
+    View to list all users in the system.
+    * Requires Token authentication.
+    * Only admin users are able to access this view.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        data={
+            'qualities':qualities,
+            'codecs':codecs,
+        }
+        data['tags'] = Tag.objects.all().values_list('name',flat=True)
+        data['performers'] = Performer.objects.all().values_list('name',flat=True)
+        data['platforms'] = Platform.objects.all().values_list('name',flat=True)
+        data['networks'] = Network.objects.all().values_list('name',flat=True)
+        return Response(data)
 
 class VideoViewSet(viewsets.ModelViewSet):
     serializer_class = VideoSerializer
@@ -38,7 +50,7 @@ class VideoViewSet(viewsets.ModelViewSet):
     # filterset_fields = ['network', 'tags__name']
     search_fields = ['title', 'url','network__name']
     filter_list = ['tag','network','performer']
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     ordering_fields = ['title','network__name','created_at',]
     ordering = ['-created_at']
     pagination_class = CustomLimitOffsetPagination
@@ -92,7 +104,7 @@ class VideoViewSet(viewsets.ModelViewSet):
 class QualityViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Quality.objects.all()
     serializer_class = QualitySerializer    
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
