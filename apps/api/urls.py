@@ -1,9 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import VideoViewSet, QualityViewSet, CustomTokenObtainPairView, GetItems
-from rest_framework_simplejwt.views import (
-    TokenRefreshView,
-)
+from rest_framework_simplejwt.views import (TokenRefreshView,)
 
 # Initialize the router
 router = DefaultRouter()

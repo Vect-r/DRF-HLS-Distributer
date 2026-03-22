@@ -11,6 +11,17 @@ from django.shortcuts import render
 from django_admin_multi_select_filter.filters import MultiSelectRelatedFieldListFilter
 from django.utils.html import format_html
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+admin.site.site_header = os.environ.get('SITE_HEADER')
+admin.site.site_title = os.environ.get('SITE_TITLE')
+# admin.site.index_title = "Manage Administration"
+
+
+
 
 class QualitiesInline(admin.TabularInline):
     model = Quality
